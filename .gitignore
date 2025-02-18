@@ -1,0 +1,25 @@
+# 🛑 Node Modules (evita enviar dependências do projeto)
+node_modules/
+npm-debug.log
+yarn-error.log
+pnpm-debug.log
+
+# 🛑 Arquivos de configuração sensíveis
+.env
+.env.local
+.env.development
+.env.production
+
+# 🛑 Firebase Credentials (remova do Git se já estiver no histórico)
+src/config/firebase-service-account.json
+
+# 🛑 Logs e arquivos gerados automaticamente
+logs/
+*.log
+debug.log
+error.log
+*.gz
+
+# 🛑 Arquivos do sistema operacional
+.DS_Store
+Thumbs.db
