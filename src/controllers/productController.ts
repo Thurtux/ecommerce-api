@@ -6,10 +6,10 @@ const prisma = new PrismaClient();
 // Criar produto (Apenas Admin)
 export const createProduct = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { name, description, price, stock } = req.body;
+    const { name, description, price, stock, color, size } = req.body;
 
     const product = await prisma.product.create({
-      data: { name, description, price, stock },
+      data: { name, description, price, stock, color, size },
     });
 
     res.status(201).json({ message: "Produto criado com sucesso!", product });
@@ -50,11 +50,11 @@ export const getProductById = async (req: Request, res: Response): Promise<void>
 export const updateProduct = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const { name, description, price, stock } = req.body;
+    const { name, description, price, stock, color, size } = req.body;
 
     const updatedProduct = await prisma.product.update({
       where: { id },
-      data: { name, description, price, stock },
+      data: { name, description, price, stock, color, size },
     });
 
     res.status(200).json({ message: "Produto atualizado!", updatedProduct });
@@ -76,11 +76,12 @@ export const deleteProduct = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-
+// Buscar produtos com filtros (name, minPrice, maxPrice, color, size)
 export const searchProducts = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { name, minPrice, maxPrice, size, color } = req.query;
+    const { name, minPrice, maxPrice, color, size } = req.query;
 
+    // Monta o whereClause dinamicamente
     const whereClause: any = {};
 
     // Filtro por nome (busca parcial, case-insensitive)
@@ -88,32 +89,30 @@ export const searchProducts = async (req: Request, res: Response, next: NextFunc
       whereClause.name = { contains: name, mode: "insensitive" };
     }
 
-    // Filtro por faixa de preço (certifique-se que os valores estejam na mesma unidade dos preços no banco)
+    // Filtro por faixa de preço
     if (minPrice || maxPrice) {
       whereClause.price = {};
       if (minPrice) {
-        whereClause.price.gte = Number(minPrice);
+        whereClause.price.gte = parseFloat(minPrice as string);
       }
       if (maxPrice) {
-        whereClause.price.lte = Number(maxPrice);
+        whereClause.price.lte = parseFloat(maxPrice as string);
       }
     }
 
-    // Filtro para variações (variants): filtra por tamanho e/ou cor
-    if (size || color) {
-      whereClause.variants = {
-        some: {
-          ...(size && typeof size === "string" && { size: { equals: size, mode: "insensitive" } }),
-          ...(color && typeof color === "string" && { color: { equals: color, mode: "insensitive" } })
-        }
-      };
+    // Filtro por cor (case-insensitive)
+    if (color && typeof color === "string") {
+      whereClause.color = { equals: color };
     }
 
+    // Filtro por tamanho (case-insensitive)
+    if (size && typeof size === "string") {
+      whereClause.size = { equals: size };
+    }
+
+    // Busca os produtos com os filtros aplicados
     const products = await prisma.product.findMany({
       where: whereClause,
-      include: {
-        variants: true, // inclui as variações dos produtos na resposta
-      },
     });
 
     res.status(200).json(products);

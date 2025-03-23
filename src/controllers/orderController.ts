@@ -7,6 +7,7 @@ const prisma = new PrismaClient();
 export const checkout = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const userId = (req as any).user.id;
+    const { shippingCost } = req.body; // Recebe o custo do frete no corpo da requisição
 
     // Busca o carrinho do usuário com os itens e os dados dos produtos
     const cart = await prisma.cart.findUnique({
@@ -25,7 +26,6 @@ export const checkout = async (req: Request, res: Response, next: NextFunction):
 
     // Verifica se cada produto possui estoque suficiente
     for (const item of cart.items) {
-      // Converte o estoque (possivelmente Decimal) para número
       const availableStock = Number(item.product.stock);
       if (availableStock < item.quantity) {
         res.status(400).json({
@@ -47,11 +47,15 @@ export const checkout = async (req: Request, res: Response, next: NextFunction):
       };
     });
 
+    // Adiciona o valor do frete ao total
+    const totalWithShipping = total + (shippingCost || 0);
+
     // Cria o pedido e os itens relacionados
     const order = await prisma.order.create({
       data: {
         userId,
-        total,
+        total: totalWithShipping,
+        shippingCost: shippingCost || 0,
         items: {
           create: orderItemsData,
         },
@@ -113,4 +117,3 @@ export const getOrderById = async (req: Request, res: Response, next: NextFuncti
     next(error);
   }
 };
-
