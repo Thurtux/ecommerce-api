@@ -1,25 +1,29 @@
-generator client {
-  provider = "prisma-client-js"
-}
-
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
+generator client {
+  provider = "prisma-client-js"
+}
+
 model User {
-  id       Int     @id @default(autoincrement())
-  name     String
-  email    String  @unique
-  password String
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
   createdAt DateTime @default(now())
+  // Relações
+  cart      Cart?
+  orders    Order[]
+  reviews   Review[] // Cada usuário pode ter várias avaliações
 }
 
 model Admin {
-  id       Int     @id @default(autoincrement())
-  name     String
-  email    String  @unique
-  password String
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
   createdAt DateTime @default(now())
 }
 
@@ -31,6 +35,11 @@ model Product {
   stock       Int              @default(0) // Estoque geral do produto
   createdAt   DateTime         @default(now())
   variants    ProductVariant[] // Relacionamento com variações
+
+  // Campos de relação inversa para os itens de carrinho, pedidos e reviews
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+  reviews    Review[] // Cada produto pode ter várias avaliações
 }
 
 model ProductVariant {
@@ -42,5 +51,70 @@ model ProductVariant {
   stock     Int      @default(0) // Estoque específico para a variação
   createdAt DateTime @default(now())
 
-  @@unique([productId, color, size]) // Garante que não haja duplicatas
+  @@unique([productId, color, size])
+}
+
+// Modelo que representa o carrinho de um usuário
+model Cart {
+  id        Int        @id @default(autoincrement())
+  user      User       @relation(fields: [userId], references: [id])
+  userId    Int        @unique // Cada usuário terá um carrinho único
+  items     CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+// Itens do carrinho: cada registro representa um produto adicionado ao carrinho
+model CartItem {
+  id        Int     @id @default(autoincrement())
+  cart      Cart    @relation(fields: [cartId], references: [id])
+  cartId    Int
+  product   Product @relation(fields: [productId], references: [id])
+  productId String // Deve ser do mesmo tipo que o id do Product
+  quantity  Int     @default(1)
+}
+
+// Modelo de pedido, gerado no processo de checkout
+model Order {
+  id        Int         @id @default(autoincrement())
+  user      User        @relation(fields: [userId], references: [id])
+  userId    Int
+  items     OrderItem[]
+  total     Float
+  status    String      @default("pending") // Exemplo: "pending", "completed", "cancelled"
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+// Itens de um pedido, com detalhes do produto, quantidade e preço no momento da compra
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  order     Order   @relation(fields: [orderId], references: [id])
+  orderId   Int
+  product   Product @relation(fields: [productId], references: [id])
+  productId String // Mesmo tipo do id em Product
+  quantity  Int     @default(1)
+  price     Float // Preço unitário no momento da compra
+}
+
+model Coupon {
+  id        Int       @id @default(autoincrement())
+  code      String    @unique
+  discount  Float // Valor percentual de desconto (ex.: 15 = 15%)
+  active    Boolean   @default(true)
+  expiresAt DateTime? // Opcional: data de expiração do cupom
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  rating    Int // Por exemplo, de 1 a 5
+  comment   String? // Comentário opcional
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  product   Product  @relation(fields: [productId], references: [id])
+  productId String // Igual ao tipo de id em Product (nesse exemplo, String com uuid)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
