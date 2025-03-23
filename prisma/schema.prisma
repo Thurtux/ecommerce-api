@@ -8,15 +8,16 @@ generator client {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   name      String
-  email     String   @unique
+  email     String    @unique
   password  String
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   // Relações
   cart      Cart?
   orders    Order[]
-  reviews   Review[] // Cada usuário pode ter várias avaliações
+  reviews   Review[]
+  wishlist  Wishlist? // Relação opcional: cada usuário pode ter uma wishlist
 }
 
 model Admin {
@@ -28,18 +29,17 @@ model Admin {
 }
 
 model Product {
-  id          String           @id @default(uuid())
-  name        String
-  description String?
-  price       Decimal
-  stock       Int              @default(0) // Estoque geral do produto
-  createdAt   DateTime         @default(now())
-  variants    ProductVariant[] // Relacionamento com variações
-
-  // Campos de relação inversa para os itens de carrinho, pedidos e reviews
-  cartItems  CartItem[]
-  orderItems OrderItem[]
-  reviews    Review[] // Cada produto pode ter várias avaliações
+  id            String           @id @default(uuid())
+  name          String
+  description   String?
+  price         Decimal
+  stock         Int              @default(0)
+  createdAt     DateTime         @default(now())
+  variants      ProductVariant[]
+  cartItems     CartItem[]
+  orderItems    OrderItem[]
+  reviews       Review[]
+  wishlistItems WishlistItem[] // Relação com os itens da wishlist
 }
 
 model ProductVariant {
@@ -48,73 +48,89 @@ model ProductVariant {
   productId String
   color     String
   size      String
-  stock     Int      @default(0) // Estoque específico para a variação
+  stock     Int      @default(0)
   createdAt DateTime @default(now())
 
   @@unique([productId, color, size])
 }
 
-// Modelo que representa o carrinho de um usuário
 model Cart {
   id        Int        @id @default(autoincrement())
   user      User       @relation(fields: [userId], references: [id])
-  userId    Int        @unique // Cada usuário terá um carrinho único
+  userId    Int        @unique
   items     CartItem[]
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 }
 
-// Itens do carrinho: cada registro representa um produto adicionado ao carrinho
 model CartItem {
   id        Int     @id @default(autoincrement())
   cart      Cart    @relation(fields: [cartId], references: [id])
   cartId    Int
   product   Product @relation(fields: [productId], references: [id])
-  productId String // Deve ser do mesmo tipo que o id do Product
+  productId String
   quantity  Int     @default(1)
 }
 
-// Modelo de pedido, gerado no processo de checkout
 model Order {
   id        Int         @id @default(autoincrement())
   user      User        @relation(fields: [userId], references: [id])
   userId    Int
   items     OrderItem[]
   total     Float
-  status    String      @default("pending") // Exemplo: "pending", "completed", "cancelled"
+  status    String      @default("pending")
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
 }
 
-// Itens de um pedido, com detalhes do produto, quantidade e preço no momento da compra
 model OrderItem {
   id        Int     @id @default(autoincrement())
   order     Order   @relation(fields: [orderId], references: [id])
   orderId   Int
   product   Product @relation(fields: [productId], references: [id])
-  productId String // Mesmo tipo do id em Product
+  productId String
   quantity  Int     @default(1)
-  price     Float // Preço unitário no momento da compra
+  price     Float
 }
 
 model Coupon {
   id        Int       @id @default(autoincrement())
   code      String    @unique
-  discount  Float // Valor percentual de desconto (ex.: 15 = 15%)
+  discount  Float
   active    Boolean   @default(true)
-  expiresAt DateTime? // Opcional: data de expiração do cupom
+  expiresAt DateTime?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 }
 
 model Review {
   id        Int      @id @default(autoincrement())
-  rating    Int // Por exemplo, de 1 a 5
-  comment   String? // Comentário opcional
+  rating    Int
+  comment   String?
   user      User     @relation(fields: [userId], references: [id])
   userId    Int
   product   Product  @relation(fields: [productId], references: [id])
-  productId String // Igual ao tipo de id em Product (nesse exemplo, String com uuid)
+  productId String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Wishlist {
+  id        Int            @id @default(autoincrement())
+  user      User           @relation(fields: [userId], references: [id])
+  userId    Int            @unique // Cada usuário tem uma wishlist única
+  items     WishlistItem[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+}
+
+model WishlistItem {
+  id         Int      @id @default(autoincrement())
+  wishlist   Wishlist @relation(fields: [wishlistId], references: [id])
+  wishlistId Int
+  product    Product  @relation(fields: [productId], references: [id])
+  productId  String // Mesmo tipo que o id em Product
+  addedAt    DateTime @default(now())
+
+  @@unique([wishlistId, productId])
 }

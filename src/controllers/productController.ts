@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -73,5 +73,51 @@ export const deleteProduct = async (req: Request, res: Response): Promise<void> 
     res.status(200).json({ message: "Produto deletado com sucesso!" });
   } catch (error) {
     res.status(400).json({ error: "Erro ao deletar produto" });
+  }
+};
+
+
+export const searchProducts = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { name, minPrice, maxPrice, size, color } = req.query;
+
+    const whereClause: any = {};
+
+    // Filtro por nome (busca parcial, case-insensitive)
+    if (name && typeof name === "string") {
+      whereClause.name = { contains: name, mode: "insensitive" };
+    }
+
+    // Filtro por faixa de preço (certifique-se que os valores estejam na mesma unidade dos preços no banco)
+    if (minPrice || maxPrice) {
+      whereClause.price = {};
+      if (minPrice) {
+        whereClause.price.gte = Number(minPrice);
+      }
+      if (maxPrice) {
+        whereClause.price.lte = Number(maxPrice);
+      }
+    }
+
+    // Filtro para variações (variants): filtra por tamanho e/ou cor
+    if (size || color) {
+      whereClause.variants = {
+        some: {
+          ...(size && typeof size === "string" && { size: { equals: size, mode: "insensitive" } }),
+          ...(color && typeof color === "string" && { color: { equals: color, mode: "insensitive" } })
+        }
+      };
+    }
+
+    const products = await prisma.product.findMany({
+      where: whereClause,
+      include: {
+        variants: true, // inclui as variações dos produtos na resposta
+      },
+    });
+
+    res.status(200).json(products);
+  } catch (error) {
+    next(error);
   }
 };

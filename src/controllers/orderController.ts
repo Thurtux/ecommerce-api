@@ -8,7 +8,7 @@ export const checkout = async (req: Request, res: Response, next: NextFunction):
   try {
     const userId = (req as any).user.id;
 
-    // Busca o carrinho do usuário com os itens e os produtos correspondentes
+    // Busca o carrinho do usuário com os itens e os dados dos produtos
     const cart = await prisma.cart.findUnique({
       where: { userId },
       include: {
@@ -21,6 +21,18 @@ export const checkout = async (req: Request, res: Response, next: NextFunction):
     if (!cart || cart.items.length === 0) {
       res.status(400).json({ error: "Carrinho vazio." });
       return;
+    }
+
+    // Verifica se cada produto possui estoque suficiente
+    for (const item of cart.items) {
+      // Converte o estoque (possivelmente Decimal) para número
+      const availableStock = Number(item.product.stock);
+      if (availableStock < item.quantity) {
+        res.status(400).json({
+          error: `Estoque insuficiente para o produto ${item.product.name}. Disponível: ${availableStock}`,
+        });
+        return;
+      }
     }
 
     // Calcula o total e prepara os itens do pedido
@@ -49,12 +61,22 @@ export const checkout = async (req: Request, res: Response, next: NextFunction):
       },
     });
 
+    // Deduz o estoque de cada produto
+    for (const item of cart.items) {
+      await prisma.product.update({
+        where: { id: item.productId },
+        data: {
+          stock: { decrement: item.quantity },
+        },
+      });
+    }
+
     // Limpa o carrinho
     await prisma.cartItem.deleteMany({
       where: { cartId: cart.id },
     });
 
-    res.status(201).json(order);
+    res.status(201).json({ message: "Pedido realizado com sucesso!", order });
   } catch (error) {
     next(error);
   }
@@ -91,3 +113,4 @@ export const getOrderById = async (req: Request, res: Response, next: NextFuncti
     next(error);
   }
 };
+
