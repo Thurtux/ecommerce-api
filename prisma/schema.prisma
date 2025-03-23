@@ -29,14 +29,14 @@ model Admin {
 }
 
 model Product {
-  id            String           @id @default(uuid())
+  id            String         @id @default(uuid())
   name          String
   description   String?
   price         Decimal
-  stock         Int              @default(0)
+  stock         Int            @default(0)
   color         String
   size          String
-  createdAt     DateTime         @default(now())
+  createdAt     DateTime       @default(now())
   cartItems     CartItem[]
   orderItems    OrderItem[]
   reviews       Review[]
@@ -69,10 +69,10 @@ model Order {
   total        Float
   shippingCost Float       @default(0.0)
   status       String      @default("pending")
+  payments     Payment[] // Relação com pagamentos realizados para o pedido
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 }
-
 
 model OrderItem {
   id        Int     @id @default(autoincrement())
@@ -125,7 +125,6 @@ model WishlistItem {
 
   @@unique([wishlistId, productId])
 }
-
 
 model Payment {
   id            Int      @id @default(autoincrement())
