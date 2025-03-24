@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-  "postinstall": "prisma generate",
-  "build": "tsc",
-  "start": "node --max_old_space_size=4096 dist/server.js",
-  "dev": "ts-node-dev --respawn --transpile-only src/server.ts"
-},
+    "postinstall": "prisma generate",
+    "build": "tsc",
+    "start": "node --max_old_space_size=4096 dist/server.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -29,6 +29,7 @@
   "devDependencies": {
     "@types/axios": "^0.9.36",
     "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.17",
     "@types/express": "^5.0.1",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^22.13.11",

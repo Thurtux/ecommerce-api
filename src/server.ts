@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors"; // importe o cors
 import authRoutes from "./routes/authRoutes";
 import productRoutes from "./routes/productRoutes";
 import cartRoutes from "./routes/cartRoutes";
@@ -10,6 +11,15 @@ import wishlistRoutes from "./routes/wishlistRoutes";
 import shippingRoutes from "./routes/shippingRoutes";
 
 const app = express();
+
+// Configuração do CORS
+app.use(
+  cors({
+    origin: "http://localhost:3000", // Permite apenas requisições deste domínio
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
 app.use(express.json());
 app.use("/auth", authRoutes);
