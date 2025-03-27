@@ -6,10 +6,10 @@ const prisma = new PrismaClient();
 // Criar produto (Apenas Admin)
 export const createProduct = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { name, description, price, stock, color, size } = req.body;
+    const { name, description, price, stock, color, size, img } = req.body;
 
     const product = await prisma.product.create({
-      data: { name, description, price, stock, color, size },
+      data: { name, description, price, stock, color, size, img },
     });
 
     res.status(201).json({ message: "Produto criado com sucesso!", product });
@@ -50,11 +50,11 @@ export const getProductById = async (req: Request, res: Response): Promise<void>
 export const updateProduct = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const { name, description, price, stock, color, size } = req.body;
+    const { name, description, price, stock, color, size, img } = req.body;
 
     const updatedProduct = await prisma.product.update({
       where: { id },
-      data: { name, description, price, stock, color, size },
+      data: { name, description, price, stock, color, size, img },
     });
 
     res.status(200).json({ message: "Produto atualizado!", updatedProduct });

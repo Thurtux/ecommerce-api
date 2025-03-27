@@ -36,11 +36,12 @@ model Product {
   stock         Int            @default(0)
   color         String
   size          String
+  img           String?        // URL da imagem do produto (opcional)
   createdAt     DateTime       @default(now())
   cartItems     CartItem[]
   orderItems    OrderItem[]
   reviews       Review[]
-  wishlistItems WishlistItem[] // Relação com os itens da wishlist
+  wishlistItems WishlistItem[]
 }
 
 model Cart {
