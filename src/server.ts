@@ -1,5 +1,5 @@
 import express from "express";
-import cors from "cors"; // importe o cors
+import cors from "cors";
 import authRoutes from "./routes/authRoutes";
 import productRoutes from "./routes/productRoutes";
 import cartRoutes from "./routes/cartRoutes";
@@ -12,16 +12,27 @@ import shippingRoutes from "./routes/shippingRoutes";
 
 const app = express();
 
-// Configuração do CORS
+const allowedOrigins = ["http://localhost:5173", "https://seu-site-em-producao.com"];
+
 app.use(
   cors({
-    origin: "http://localhost:3000", // Permite apenas requisições deste domínio
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
+// 🔥 Lida com preflight requests (corrigido)
+app.options("*", cors());
+
 app.use(express.json());
+
 app.use("/auth", authRoutes);
 app.use("/products", productRoutes);
 app.use("/cart", cartRoutes);
@@ -33,6 +44,6 @@ app.use("/wishlist", wishlistRoutes);
 app.use("/shopping", shippingRoutes);
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
+app.listen(PORT, () => console.log(`🔥 Servidor rodando na porta ${PORT}`));
 
 export default app;
