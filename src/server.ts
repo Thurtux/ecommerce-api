@@ -9,6 +9,9 @@ import couponRoutes from "./routes/couponRoutes";
 import reviewRoutes from "./routes/reviewRoutes";
 import wishlistRoutes from "./routes/wishlistRoutes";
 import shippingRoutes from "./routes/shippingRoutes";
+import dotenv from "dotenv";
+dotenv.config();
+
 
 const app = express();
 
