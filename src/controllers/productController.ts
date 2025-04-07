@@ -90,3 +90,12 @@ export const deleteProduct = async (req: Request, res: Response): Promise<void> 
     res.status(500).json({ error: "Erro ao deletar produto." });
   }
 };
+
+export const getAllProducts = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const products = await prisma.product.findMany();
+    res.status(200).json(products);
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao listar produtos." });
+  }
+};

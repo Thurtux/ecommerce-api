@@ -3,7 +3,8 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
-  searchProducts
+  searchProducts,
+  getAllProducts
 } from "../controllers/productController";
 import { verifyToken, isAdmin } from "../middlewares/authMiddleware";
 import { validateProduct } from "../middlewares/validationMiddleware";
@@ -14,6 +15,7 @@ const router = express.Router();
 // Coloque a rota de busca antes da rota com parâmetro :id
 router.get("/search", searchProducts);
 
+router.get("/", getAllProducts);
 
 // Rotas protegidas (apenas admins podem acessar)
 router.post("/", verifyToken, isAdmin, validateProduct, handleValidationErrors, createProduct);
