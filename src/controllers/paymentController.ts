@@ -99,3 +99,23 @@ export const handleStripeWebhook = async (req: Request, res: Response): Promise<
 
   res.status(200).json({ received: true });
 };
+
+// Calcula o total de vendas
+export const getTotalSales = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // Soma o total de todos os pedidos com status "completed"
+    const totalSales = await prisma.order.aggregate({
+      _sum: {
+        total: true,
+      },
+      where: {
+        status: "completed", // Considera apenas pedidos concluídos
+      },
+    });
+
+    res.status(200).json({ totalSales: totalSales._sum.total || 0 });
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao calcular o total de vendas." });
+  }
+};
+
