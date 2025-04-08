@@ -12,7 +12,7 @@
 
   const app = express();
 
-  const allowedOrigins = ["http://localhost:5173", "https://seu-site-em-producao.com"];
+  const allowedOrigins = ["http://localhost:5173", "https://adminecommerc.netlify.app/"];
 
   app.use(
     cors({
